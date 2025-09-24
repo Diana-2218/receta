@@ -1,44 +1,83 @@
 import React, { useState } from 'react';
 import Login from './login';
 import Registro from './registro';
-import Receta from './receta';   // componente para registrar/modificar recetas
-import Votar from './votar';     // componente para ver recetas y votar
+import Receta from './receta';   // formulario de registro/edición
+import Votar from './votar';     // galería de recetas
 
 function App() {
   const [vistaActual, setVistaActual] = useState('login');
   const [token, setToken] = useState(null);
+  const [recetaParaEditar, setRecetaParaEditar] = useState(null);
 
-  // Cuando el login es exitoso:
   const handleLoginSuccess = (tokenRecibido) => {
     setToken(tokenRecibido);
-    setVistaActual('diseno'); // ir a la vista de registro de receta
+    setVistaActual('diseno');
   };
 
-  // Cambiar entre login y registro
   const irARegistro = () => setVistaActual('registro');
   const irALogin = () => setVistaActual('login');
-
-  // Cerrar sesión
   const handleLogout = () => {
     setToken(null);
     setVistaActual('login');
+    setRecetaParaEditar(null);
+  };
+  const irAGaleria = () => setVistaActual('galeria');
+  
+  const volverADiseno = () => {
+    setRecetaParaEditar(null);  // limpio receta al volver para crear nueva
+    setVistaActual('diseno');
   };
 
-  // Ir a galería (votar)
-  const irAGaleria = () => setVistaActual('galeria');
+  // Cuando editas una receta desde galería
+  const manejarEditarReceta = (receta) => {
+    setRecetaParaEditar(receta);
+    setVistaActual('diseno');
+  };
 
-  // Volver de la galería a diseño (registro)
-  const volverADiseno = () => setVistaActual('diseno');
+  // Eliminar sin recargar ni actualizar lista
+  const manejarEliminarReceta = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar esta receta?')) return;
+
+    try {
+      const resp = await fetch(`http://localhost:3000/api/recetas/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+        },
+      });
+
+      if (resp.ok) {
+        alert('Receta eliminada correctamente');
+        // No actualizamos ni recargamos nada aquí
+      } else {
+        const data = await resp.json();
+        alert('Error al eliminar: ' + (data.error || 'Error desconocido'));
+      }
+    } catch (error) {
+      alert('Error de conexión al eliminar la receta');
+    }
+  };
 
   return (
     <div className="App">
       {token ? (
         <>
           {vistaActual === 'diseno' && 
-            <Receta token={token} onVerGaleria={irAGaleria} onLogout={handleLogout} />
+            <Receta 
+              token={token} 
+              onVerGaleria={irAGaleria} 
+              onLogout={handleLogout} 
+              recetaParaEditar={recetaParaEditar}  // paso receta para editar
+            />
           }
           {vistaActual === 'galeria' && 
-            <Votar token={token} onVolverDiseño={volverADiseno} onLogout={handleLogout} />
+            <Votar 
+              token={token} 
+              onVolverDiseño={volverADiseno} 
+              onLogout={handleLogout} 
+              onEditarReceta={manejarEditarReceta} // paso handler edición
+              onEliminarReceta={manejarEliminarReceta} // paso handler eliminar
+            />
           }
         </>
       ) : (

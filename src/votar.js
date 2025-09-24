@@ -13,14 +13,14 @@ function GaleriaRecetas(props) {
         const resp = await fetch('http://localhost:3000/api/recetas', {
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + props.token // usar token si es necesario
+            'Authorization': 'Bearer ' + props.token
           }
         });
 
-        const text = await resp.text();  // leer como texto primero
+        const text = await resp.text();
         let data;
         try {
-          data = JSON.parse(text);       // intentar parsear a JSON
+          data = JSON.parse(text);
         } catch (err) {
           console.error('Respuesta no es JSON:', text);
           setError('Respuesta inesperada del servidor');
@@ -47,7 +47,7 @@ function GaleriaRecetas(props) {
 
   const votarReceta = async (id) => {
     try {
-      const resp = await fetch(`http://localhost:3000/api/recetas/vota/${id}`, {
+      const resp = await fetch(`http://localhost:3000/api/recetas/recetas/vota/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ function GaleriaRecetas(props) {
             </p>
             <p>Calificación: {r.calificacion || 0}</p>
             <button onClick={() => votarReceta(r._id)}>👍 Me gusta</button>
-            <button onClick={() => props.onEditarReceta?.(r._id)}>Editar</button>
+            <button onClick={() => props.onEditarReceta?.(r)}>Editar</button>
             <button onClick={() => props.onEliminarReceta?.(r._id)}>Eliminar</button>
           </div>
         ))
@@ -102,4 +102,3 @@ function GaleriaRecetas(props) {
 }
 
 export default GaleriaRecetas;
-
